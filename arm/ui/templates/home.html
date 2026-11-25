@@ -11,12 +11,7 @@
 </head>
 <!-- Home page: everything below main is filled in by static/js/home.js from json?mode=home (arm/ui/home_api.py) -->
 <body class="font-sans" data-refresh="{{ refresh }}" data-auth="{{ 1 if authenticated else 0 }}">
-<button id="theme-toggle" type="button" aria-label="Switch light or dark"
-        class="glass lift fixed z-20 grid h-11 w-11 place-items-center rounded-full"
-        style="top: calc(1.25rem + env(safe-area-inset-top, 0px)); right: calc(1.25rem + env(safe-area-inset-right, 0px));">
-    <svg id="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="var(--accent)" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-    <svg id="icon-sun" hidden width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="#fcd34d"/><g stroke="#fcd34d" stroke-width="2" stroke-linecap="round"><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></g></svg>
-</button>
+{% include "glass_toggle.html" %}
 
 <main class="mx-auto max-w-4xl py-14 sm:py-16">
     <header class="mb-10 text-center">
