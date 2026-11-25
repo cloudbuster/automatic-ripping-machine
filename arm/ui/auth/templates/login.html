@@ -1,33 +1,12 @@
-{% extends "support/base_simple.html" %}
-
-{% block content %} 
-<div class="container">
-    <div class="row h-100 mx-auto align-items-center">
-		<div class="col-sm-4 mx-auto" style="flex-wrap: nowrap">
-			<form id="form1" name="form1" method="post" action="login">
-				{{ form.hidden_tag() }}
-				<div class="input-group mb-3">
-					<div class="input-group-prepend">
-						<span class="input-group-text" id="usr">Username:</span>
-					</div>
-					<input type="text" class="form-control" aria-label="username" name="username" placeholder="username" value="" aria-describedby="usr">
-					{% for error in form.username.errors %}
-						<div class="text-danger">{{ error }}</div>
-					{% endfor %}
-				</div>
-				<div class="input-group mb-3">
-					<div class="input-group-prepend">
-						<span class="input-group-text" id="basic-addon1">Password:</span>
-					</div>
-					<input type="password" class="form-control" name="password" aria-label="password" aria-describedby="basic-addon1">
-					{% for error in form.password.errors %}
-						<div class="text-danger">{{ error }}</div>
-					{% endfor %}
-				</div>
-				<input class="form-control" name="save" value="save" hidden>
-				<button class="btn btn-secondary btn-lg btn-block" form="form1" type="submit">Login</button>
-			</form>
-		</div>
-    </div>
-</div>
+{% extends "glass_base.html" %}
+{% from "glass_form.html" import field %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+    <form method="post" action="login" class="glass mt-5 max-w-sm rounded-2xl p-6">
+        {{ form.hidden_tag() }}
+        {{ field("username", "Username", errs=form.username.errors, attrs='autocomplete="username" required autofocus') }}
+        {{ field("password", "Password", type="password", errs=form.password.errors, attrs='autocomplete="current-password" required') }}
+        <input type="hidden" name="save" value="save">
+        <button type="submit" class="btn mt-5">Log in</button>
+    </form>
 {% endblock %}

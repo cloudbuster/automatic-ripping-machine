@@ -1,9 +1,10 @@
-<section id="help" class="tab mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
+<section id="help" class="tab mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
     {% for url, name, what in [("https://github.com/cloudbuster/automatic-ripping-machine", "Your fork", "The code this ARM runs"),
                                ("https://github.com/automatic-ripping-machine/automatic-ripping-machine/wiki", "ARM wiki", "Upstream documentation"),
-                               ("https://github.com/automatic-ripping-machine/automatic-ripping-machine", "Upstream ARM", "Issues and releases")] %}
-        <a href="{{ url }}" target="_blank" rel="noopener" class="glass lift rounded-2xl p-6">
-            <p class="font-semibold">{{ name }} &nearr;</p><p class="text-sm text-muted">{{ what }}</p>
+                               ("https://github.com/automatic-ripping-machine/automatic-ripping-machine", "Upstream ARM", "Issues and releases"),
+                               ("send_movies", "Share disc IDs", "Send your identified DVDs to the community ARM database")] %}
+        <a href="{{ url }}" {{ 'target="_blank" rel="noopener"' | safe if url.startswith("http") }} class="glass lift rounded-2xl p-6">
+            <p class="font-semibold">{{ name }}{{ " ↗" if url.startswith("http") }}</p><p class="text-sm text-muted">{{ what }}</p>
         </a>
     {% endfor %}
 </section>

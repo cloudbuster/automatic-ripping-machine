@@ -1,13 +1,9 @@
-<!doctype html>
 {# Every job, newest first, in the home page's glass look; paginated by history.history (UI setting database_limit) #}
+{% extends "glass_base.html" %}
 {% from "glass_macros.html" import pill, cover %}
-<html lang="en">
-<head>
-    {% set page_title = "History · ARM" %}{% include "glass_head.html" %}
-</head>
-<body class="font-sans">
-<main class="mx-auto max-w-4xl py-14 sm:py-16">
-    {% include "glass_top.html" %}
+{% block title %}History{% endblock %}
+{% block heading %}{% endblock %}
+{% block content %}
     <div class="mb-3 mt-5 flex items-baseline justify-between px-1">
         <h1 class="text-3xl font-extrabold tracking-tight">History</h1>
         <span class="text-sm text-muted">{{ pages.total }} jobs</span>
@@ -41,6 +37,4 @@
             {% if pages.has_next %}<a class="btn" href="{{ url_for('route_history.history', page=pages.next_num) }}">Older &rarr;</a>{% endif %}
         </nav>
     {% endif %}
-</main>
-</body>
-</html>
+{% endblock %}

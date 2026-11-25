@@ -52,7 +52,8 @@ def listlogs(path):
         raise ValidationError
 
     # Get all files in directory
-    files = ui_utils.get_info(full_path)
+    files = sorted(ui_utils.get_info(full_path), key=lambda f: os.path.getmtime(os.path.join(full_path, f[0])),
+                   reverse=True)
     return render_template('logfiles.html', files=files, date_format=cfg.arm_config['DATE_FORMAT'])
 
 

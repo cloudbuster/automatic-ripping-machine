@@ -1,32 +1,23 @@
-{% extends "base.html" %}
-
-{% block content %}
-    <div class="container">
-    <div class="row">
-        <div class="col-12">
-            {% if notifications_new is not none: %}
-                    <div class="card">
-                        <div class="card-header">
-                            Clear All <a href="notificationclose">[x]</a>
-                        </div>
-                    </div>
-                {% for notification in notifications_new %}
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title"><b> {{ notification.title }} </b></h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ notification.diff_time }} ({{ notification.trigger_time.strftime('%d-%b-%y %H:%M') }})</h6>
-                            <p class="card-text"> {{ notification.message }} </p>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="card">
-                    <div class="card-body">
-                        <p class="card-text"> No new notifications </p>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+{% extends "glass_base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block heading %}
+    <div class="mt-5 flex items-baseline justify-between px-1">
+        <h1 class="text-3xl font-extrabold tracking-tight">Notifications</h1>
+        {% if notifications_new %}<a href="notificationclose" class="text-sm font-medium text-accent">Clear all</a>{% endif %}
     </div>
-
+{% endblock %}
+{% block content %}
+    <ol class="mt-5 flex flex-col gap-3">
+        {% for n in notifications_new or [] %}
+            <li class="glass rounded-2xl p-5">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <p class="font-semibold">{{ n.title }}</p>
+                    <p class="text-sm text-muted" title="{{ n.trigger_time.strftime('%d %b %Y %H:%M') }}">{{ n.trigger_time.strftime('%d %b %H:%M') }}</p>
+                </div>
+                <p class="mt-1 break-words text-sm text-muted">{{ n.message }}</p>
+            </li>
+        {% else %}
+            <li class="glass rounded-2xl p-6 text-muted">No new notifications.</li>
+        {% endfor %}
+    </ol>
 {% endblock %}

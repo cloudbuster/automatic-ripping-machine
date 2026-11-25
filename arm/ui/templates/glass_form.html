@@ -1,0 +1,7 @@
+{# Form rows for the glass pages: field(name, label, value, type) and errors(list) #}
+{% macro errors(list) %}{% for e in list or [] %}<span class="mt-1 block text-xs text-bad">{{ e }}</span>{% endfor %}{% endmacro %}
+{% macro field(name, label, value="", type="text", errs=none, attrs="") %}
+    <label class="mt-4 block first:mt-0"><span class="label">{{ label }}</span>
+        <input class="field" type="{{ type }}" name="{{ name }}" value="{{ value if value is not none else '' }}" {{ attrs | safe }}>
+        {{ errors(errs) }}</label>
+{% endmacro %}

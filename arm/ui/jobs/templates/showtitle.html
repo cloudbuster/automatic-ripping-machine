@@ -1,33 +1,19 @@
-{% extends "base.html" %}
-{% block title %}Logs{% endblock %}
-
-{% block nav %}{{ super() }}{% endblock %}
-
+{% extends "glass_base.html" %}
+{% block title %}{{ results["Title"] }}{% endblock %}
+{% block heading %}{% endblock %}
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-sm-3"></div>
-            <div class="col-sm-6 text-center">
-                <div class="card text-center">
-                    <div class="card-header"><a href="select_title?imdbID={{ results["imdbID"] }}&job_id={{ job_id }}"><img src="{{ results["Poster"] }}" width="240px" class="img-thumbnail" alt="Poster Image"></a></div>
-                    <div class="card-body"><strong>{{  results["Title"]  }}</strong> - {{ results["Type"].capitalize() }} ({{ results["Year"] }})</div>
-                    <div class="card-body"><strong>Full Plot:</strong> {{ results["Plot"] }}</div>
-                    <div class="card-footer">
-						<a href="titlesearch?job_id={{ job_id }}" class="btn btn-primary">New Search</a>   
-                        <a href="{{ url_for('route_jobs.updatetitle',
-                                            title=results['Title'],
-                                            year=results['Year'],
-                                            imdbID=results['imdbID'],
-                                            type=results['Type'],
-                                            poster=results['Poster'],
-                                            job_id=job_id) }}" class="btn btn-primary">Update Title</a>
-                    </div>
-                </div>
+    <section class="glass mt-5 flex flex-col gap-6 rounded-2xl p-6 sm:flex-row">
+        {% if results["Poster"] and results["Poster"].startswith("http") %}<img src="{{ results['Poster'] }}" alt="" class="w-40 flex-none self-center rounded-xl object-cover sm:self-start">{% endif %}
+        <div class="min-w-0 flex-1">
+            <span class="label">{{ results["Type"] | capitalize }}</span>
+            <h1 class="mt-1 text-3xl font-extrabold tracking-tight">{{ results["Title"] }} <span class="font-normal text-muted">({{ results["Year"] }})</span></h1>
+            {% if results["Plot"] %}<p class="mt-4 leading-relaxed">{{ results["Plot"] }}</p>{% endif %}
+            <div class="mt-5 flex flex-wrap gap-2">
+                <a class="btn" style="box-shadow: 0 0 0 1px var(--accent); color: var(--accent)" href="{{ url_for('route_jobs.updatetitle', title=results['Title'], year=results['Year'],
+                    imdbID=results['imdbID'], type=results['Type'], poster=results['Poster'], job_id=job_id) }}">Use this title</a>
+                <a class="btn" href="titlesearch?job_id={{ job_id }}">Search again</a>
+                <a class="btn" href="jobdetail?job_id={{ job_id }}">Back to the disc</a>
             </div>
-        <div class="col-sm-3"></div>     
-    </div>
-</div>
-
-
-
+        </div>
+    </section>
 {% endblock %}

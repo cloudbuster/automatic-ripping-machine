@@ -44,19 +44,20 @@ def view_database():
     app.logger.debug(armui_cfg)
 
     # Check for database file
-    if os.path.isfile(cfg.arm_config['DBFILE']):
-        jobs = Job.query.order_by(db.desc(Job.job_id)).paginate(page=page,
-                                                                max_per_page=int(
-                                                                    armui_cfg.database_limit),
-                                                                error_out=False)
-    else:
-        app.logger.error('ERROR: /database no database, file doesnt exist')
-        jobs = {}
+    q = request.args.get('q', '').strip()
+    status = request.args.get('status', '')
+    query = Job.query
+    if status in ('success', 'fail'):
+        query = query.filter(Job.status == status)
+    if q:
+        query = query.filter(Job.title.ilike(f"%{q}%") | Job.title_manual.ilike(f"%{q}%") | Job.label.ilike(f"%{q}%"))
+    jobs = query.order_by(db.desc(Job.job_id)).paginate(page=page, max_per_page=int(armui_cfg.database_limit),
+                                                        error_out=False)
 
     session["page_title"] = "Database"
 
     return render_template('databaseview.html',
-                           jobs=jobs.items, pages=jobs,
+                           jobs=jobs.items, pages=jobs, q=q, status=status,
                            date_format=cfg.arm_config['DATE_FORMAT'])
 
 

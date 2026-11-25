@@ -1,36 +1,36 @@
-{% extends "base.html" %}
-
-{% block content %}
-<h4>Loading log: {{ file }}...</h4>
-<div id="container">
-
-    <div id="log">
-        <pre id="{{ file }}" ></pre>
+{% extends "glass_base.html" %}
+{% set wide = true %}
+{% block title %}{{ file }}{% endblock %}
+{% block heading %}
+    <div class="mt-5 flex flex-wrap items-center gap-2 px-1">
+        <h1 class="min-w-0 flex-1 break-all text-2xl font-extrabold tracking-tight">{{ file }}</h1>
+        {% for m, name in [("tail", "Live"), ("full", "Full"), ("armcat", "ARM")] %}
+            <a class="btn" href="logs?logfile={{ file | urlencode }}&mode={{ m }}" {{ 'aria-current=page' if m == mode }}>{{ name }}</a>
+        {% endfor %}
+        <a class="btn" href="logreader?logfile={{ file | urlencode }}&mode=download">Download</a>
+        <a class="btn" href="listlogs">All logs</a>
     </div>
-</div>
 {% endblock %}
-{% block footer %}{{ super() }}{% endblock %}
-{% block js %}
-{{ super() }}
+{% block content %}
+    <pre id="log" class="glass mt-5 whitespace-pre-wrap break-all rounded-2xl p-5 font-mono text-xs leading-relaxed"
+         data-src="logreader?logfile={{ file | urlencode }}&mode={{ 'armcat' if mode == 'armcat' else 'full' }}&json=1"
+         data-follow="{{ 1 if mode == 'tail' else 0 }}">Loading&hellip;</pre>
+{% endblock %}
+{% block scripts %}
 <script>
-    const output = document.getElementById('{{ file }}');
-
-    const xhr = new XMLHttpRequest();
-    {% if mode == 'tail' or mode == 'full' %}
-        xhr.open('GET', '/logreader?logfile={{ file }}&mode=full&json=1');
-    {% else %}
-        xhr.open('GET', '/logreader?logfile={{ file }}&mode={{ mode }}&json=1');
-    {% endif %}
-    xhr.open
-    xhr.send();
-
-    setInterval(function() {
-        output.textContent = xhr.responseText;
-        {% if mode == 'tail' %}
-            window.scrollTo(0, document.querySelector("#content").scrollHeight);
-        {% endif %}
-    }, 1000);
-
+    (async function () {  // logreader streams the file and keeps sending what's added, so append chunks as they come
+        const out = document.getElementById("log");
+        const follow = out.dataset.follow === "1";
+        try {
+            const reader = (await fetch(out.dataset.src)).body.pipeThrough(new TextDecoderStream()).getReader();
+            out.textContent = "";
+            for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
+                out.append(chunk.value);
+                if (follow && chunk.value) scrollTo(0, document.body.scrollHeight);
+            }
+        } catch (e) {
+            out.append(out.textContent ? "\n(stopped reading the log)" : "Couldn't read the log.");
+        }
+    }());
 </script>
 {% endblock %}
-

@@ -1,0 +1,15 @@
+<!doctype html>
+{# Base of the glass sub-pages: blocks title, heading (defaults to the title), content, scripts; width via `wide` #}
+<html lang="en">
+<head>
+    {% set page_title = self.title() ~ " · ARM" %}{% include "glass_head.html" %}
+</head>
+<body class="font-sans">
+<main class="mx-auto {{ 'max-w-6xl' if wide else 'max-w-4xl' }} py-14 sm:py-16">
+    {% include "glass_top.html" %}
+    {% block heading %}<h1 class="mt-5 px-1 text-3xl font-extrabold tracking-tight">{{ self.title() }}</h1>{% endblock %}
+    {% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

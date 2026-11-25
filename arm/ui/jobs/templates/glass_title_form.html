@@ -1,0 +1,8 @@
+{# Title + year search form shared by titlesearch and list_titles #}
+<form action="{{ action }}" method="get" class="glass mt-5 flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-end">
+    <label class="flex-1"><span class="label">Title</span><input class="field" name="title" value="{{ title or '' }}" required></label>
+    <label class="sm:w-28"><span class="label">Year</span><input class="field" name="year" value="{{ year or '' }}" inputmode="numeric"></label>
+    <input type="hidden" name="job_id" value="{{ job_id }}"><input type="hidden" name="save" value="save">
+    <button type="submit" class="btn sm:mb-1">{{ button or "Search" }}</button>
+</form>
+{% for k in (form.errors if form else {}) %}<p class="mt-2 px-1 text-sm text-bad">{{ k }}: {{ form.errors[k] | join(", ") }}</p>{% endfor %}

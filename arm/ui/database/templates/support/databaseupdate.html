@@ -1,47 +1,21 @@
-{% extends "support/base_simple.html" %}
-{% block title %}ARM Database Update or Setup{% endblock %}
-
-{% block nav %}{{ super() }}{% endblock %}
-
+{% extends "glass_base.html" %}
+{% block title %}Database update{% endblock %}
 {% block content %}
-<div class="container content">
-    <div class="row">
-        <div class="col-sm-12 rounded text-center">
-            <h2 class="text-center">Automatic Ripping Machine Database Update</h2>
-        </div>
-        <p> A change to ARM has occurred, either through an update or database corruption. Creation or migration of the database is required. Where possible, all existing user data will be maintained.</p>
+    <div class="glass mt-5 rounded-2xl p-6">
+        {% if not db_update.db_exists %}
+            <p>ARM's database is missing. It should be at <span class="font-mono text-sm">{{ db_update.db_file }}</span>.
+                If the file is there, check its owner and permissions: ARM can't read it.</p>
+            <form action="dbupdate" method="post" class="mt-5">{{ dbform.hidden_tag() }}<input type="hidden" name="dbfix" value="new">
+                <button type="submit" class="btn">Create the database</button></form>
+        {% elif not db_update.db_current %}
+            <p>This version of ARM needs a newer database layout (database {{ db_update.db_revision.version_num }},
+                ARM {{ db_update.head_revision }}). Your data is kept, and a backup
+                <span class="font-mono text-sm">arm_migration_(time).db</span> is made next to
+                <span class="font-mono text-sm">{{ db_update.db_file }}</span> first.</p>
+            <form action="dbupdate" method="post" class="mt-5">{{ dbform.hidden_tag() }}<input type="hidden" name="dbfix" value="migrate">
+                <button type="submit" class="btn">Update the database</button></form>
+        {% else %}
+            <p>The database is up to date.</p><a href="./" class="btn mt-5 inline-block">Home</a>
+        {% endif %}
     </div>
-
-    <div class="row">
-        <div class="col-sm-12 ">
-            {% if not db_update.db_exists %}
-                <p><u> Missing database  </u></p>
-                <p> The ARM database is missing, the files is configured to be installed in: {{ db_update.db_file }}. </p>
-                <p> If the file exists, confirm the file ownership and permissions are configured correctly, as ARM is unable to read the file </p>
-                <form class="" action="dbupdate" method="post">
-                    {{ dbform.hidden_tag() }}
-                    <input type="hidden" id="dbfix" name="dbfix" value="new">
-                    <button type="submit" class="btn btn-primary">Create the database</button>
-                </form>
-            {% else: %}
-                {% if not db_update.db_current %}
-                    <p><u> Database Update Required  </u></p>
-                    <p> Database exists but requires an update/migration to continue working.</p>
-                    <ul>
-                        <li>ARM Version: {{ db_update.head_revision}}</li>
-                        <li>ARM DB Version: {{ db_update.db_revision.version_num}}</li>
-                    </ul>
-                    <p> The database will be migrated: <em>{{ db_update.db_file }}</em> </p>
-                    <p> A backup of the file will be created within the same folder: <em>arm_migration_(timestamp).db</em></p>
-                    <br>
-                    <form class="" action="dbupdate" method="post">
-                        {{ dbform.hidden_tag() }}
-                        <input type="hidden" id="dbfix" name="dbfix" value="migrate">
-                        <button type="submit" class="btn btn-primary">Migrate Database</button>
-                    </form>
-                {% endif %}
-            {% endif %}
-        </div>
-    </div>
-</div>
 {% endblock %}

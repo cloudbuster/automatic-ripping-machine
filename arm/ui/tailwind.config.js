@@ -1,8 +1,7 @@
-// Tailwind for the glass pages (home, job details, history, settings); the Dockerfile builds static/css/home.css.
+// Tailwind for every page of the UI (all templates are glass pages now); the Dockerfile builds static/css/home.css.
 // Colors are CSS variables (static/css/home.src.css) so light and dark come from one set of class names.
 module.exports = {
-  content: ['templates/home.html', 'templates/glass_*.html', 'jobs/templates/jobdetail.html',
-            'history/templates/history.html', 'settings/templates/settings/*.html', 'static/js/home.js', 'static/js/settings.js']
+  content: ['templates/*.html', '*/templates/**/*.html', 'static/js/*.js']
     .map((f) => __dirname + '/' + f),
   theme: {
     extend: {

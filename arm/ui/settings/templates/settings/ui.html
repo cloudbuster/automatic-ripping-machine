@@ -3,10 +3,13 @@
     <form id="uiSettings" data-save="save_ui_settings" class="glass rounded-2xl px-6 py-3">
         {{ form.hidden_tag() }}
         {% set items = [] %}
-        {% for k in ["index_refresh", "notify_refresh", "database_limit", "use_icons", "save_remote_images", "bootstrap_skin", "language"] %}
+        {% for k in ["index_refresh", "notify_refresh", "database_limit", "save_remote_images", "language"] %}
             {% set _ = items.append((k, ui_settings[k])) %}
         {% endfor %}
         {{ fields(items, jsoncomments, false, "") }}
+        {# No longer used by the pages (no Bootstrap skin or icon set), but the form still requires them #}
+        <input type="hidden" name="bootstrap_skin" value="{{ ui_settings.bootstrap_skin }}">
+        <input type="hidden" name="use_icons" value="{{ ui_settings.use_icons }}">
         <button type="submit" class="btn my-3">Save</button>
     </form>
 </section>

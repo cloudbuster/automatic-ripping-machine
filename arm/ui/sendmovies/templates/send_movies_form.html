@@ -1,25 +1,11 @@
-{% extends "base.html" %}
-
-{% block content %} 
-<div class="container jumbotron alert-info">
-    <div class="row h-100 mx-auto align-items-center">
-        <div class="col text-center" style="flex-wrap: nowrap">
-            <h2>This will take a LONG time with large databases!</h2>
-                <p>	To use this form you will need an API key for the ARM db.
-                    You can get one for free from <a href="https://1337server.pythonanywhere.com/request/key">here</a>.
-                    <br>You will need to add the API key to your arm.yaml
-                </p>
-                <p>By clicking "I understand" you agree to submitting all dvd entries from your own personal database to the ARM API.
-                <br>
-                No personal information is tracked, only the dvd's crc64, Title, Year, imdb id, hasnicetitle and the disc label
-                <br>
-                These are used to help others more easily identify dvds without the need for an external api or any user input.</p>
-            <form id="form1" name="form1" action="send_movies?s=1">
-                <input class="form-control" name="s" value="1" hidden>
-                <button class="btn btn-secondary btn-lg btn-block" form="form1" type="submit">I understand</button>
-
-            </form>
-        </div>
+{% extends "glass_base.html" %}
+{% block title %}Share disc IDs{% endblock %}
+{% block content %}
+    <div class="glass mt-5 rounded-2xl p-6">
+        <p>This sends every identified DVD in your database to the community ARM database, so other people's ARM can name the same
+            discs without a lookup. Sent per disc: its CRC64, title, year, IMDb ID, label and whether the title was confirmed.
+            Nothing about you is sent, but it does go to an outside service (1337server.pythonanywhere.com).</p>
+        <p class="mt-3 text-sm text-muted">It needs an ARM database API key in arm.yaml (ARM_API_KEY), and takes long with many discs.</p>
+        <form action="send_movies" class="mt-5"><input type="hidden" name="s" value="1"><button type="submit" class="btn">Send them</button></form>
     </div>
-</div>
 {% endblock %}

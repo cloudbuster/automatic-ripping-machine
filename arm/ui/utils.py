@@ -392,11 +392,10 @@ def generate_arm_cat(full_path):
     read_log_file = open(full_path)
     while True:
         new = read_log_file.readline()
-        if new:
-            if "ARM:" in new:
-                yield new
-            else:
-                sleep(1)
+        if not new:
+            sleep(1)  # at the end of the file: wait for more instead of spinning
+        elif "ARM:" in new:
+            yield new
 
 
 def setup_database():

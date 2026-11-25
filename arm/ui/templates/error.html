@@ -1,14 +1,9 @@
-{% extends "base.html" %}
-{% block title %}Error{% endblock %}
-
-{% block nav %}{{ super() }}{% endblock %}
-
+{% extends "glass_base.html" %}
+{% block title %}Something went wrong{% endblock %}
 {% block content %}
-    <div class="jumbotron">
-        <pre>{% include "simple_error.html" %}</pre>
-        <p>{{ error }}</p>
+    <div class="glass mt-5 rounded-2xl p-6">
+        <p>ARM couldn't show this page.</p>
+        {% if error %}<pre class="mt-4 whitespace-pre-wrap break-all font-mono text-xs text-muted">{{ error }}</pre>{% endif %}
+        <div class="mt-5 flex flex-wrap gap-2"><a href="./" class="btn">Home</a><a href="listlogs" class="btn">Logs</a></div>
     </div>
-
-
-
 {% endblock %}
