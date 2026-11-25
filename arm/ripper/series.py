@@ -30,11 +30,17 @@ def title_number(filename):
     return int(match[1]) if match else 999
 
 
-def show_folder(job):
-    """'Title (Year)' with the first year only: OMDb gives a series' years as 1990–1995"""
-    title = job.title_manual or job.title
+def first_year(job):
+    """The job's year, the first one only: OMDb gives a series' years as 1990–1995"""
     year = re.match(r"\d{4}", job.year_manual or job.year or "")
-    return f"{title} ({year[0]})" if year else title
+    return year[0] if year else ""
+
+
+def show_folder(job):
+    """'Title (Year)'"""
+    title = job.title_manual or job.title
+    year = first_year(job)
+    return f"{title} ({year})" if year else title
 
 
 def show_path(job):

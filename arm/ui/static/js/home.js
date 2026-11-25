@@ -25,11 +25,8 @@
         if (job.poster && /^https?:\/\//.test(job.poster)) {
             return `<img class="cover" src="${esc(job.poster)}" alt="" loading="lazy">`;
         }
-        let hue = 0;
-        for (const ch of job.title || "") hue = (hue * 31 + ch.charCodeAt(0)) % 360;
-        const short = job.disctype === "bluray" ? "BD" : job.disctype === "music" ? "CD"
-            : (job.title || "?").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-        return `<div class="cover" aria-hidden="true" style="background: linear-gradient(160deg, hsl(${hue} 55% 38%), hsl(${(hue + 40) % 360} 60% 24%))">${esc(short)}</div>`;
+        const kind = {music: "CD", bluray: "BD"}[job.disctype] || "DVD";  // as cover() in glass_macros.html
+        return `<div class="cover" aria-hidden="true" style="background: linear-gradient(160deg, var(--accent), #0f172a)">${kind}</div>`;
     }
 
     function range(eps) {
@@ -127,7 +124,7 @@
     }
 
     function finishedCard(g) {
-        let title = `${esc(g.title)}${g.year && g.video_type !== "series" ? ` <span class="font-normal text-muted">(${esc(g.year)})</span>` : ""}`;
+        let title = name(g);
         const meta = [];
         if (g.season) {
             title = `${esc(g.title)}, Season ${g.season}`;
