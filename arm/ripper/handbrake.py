@@ -241,6 +241,9 @@ def handbrake_mkv(srcpath, basepath, logfile, job):
     for files in os.listdir(srcpath):
         if files == play_all:
             logging.info(f"Skipping {shlex.quote(files)}: a Play All title (the episodes back to back)")
+            for track in job.tracks.filter_by(filename=files):
+                track.status = "skipped"
+            db.session.commit()
             continue
         srcpathname = os.path.join(srcpath, files)
         destfile = os.path.splitext(files)[0]
