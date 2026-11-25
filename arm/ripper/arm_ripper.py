@@ -252,19 +252,37 @@ def move_files_post(transcode_out_path, job):
                 utils.move_files(transcode_out_path, track.filename, job, track.main_feature)
 
 
+FILM_PART_MIN = 3600  # seconds: a title this long on a later disc is the film's next part, not an extra
+
+
 def move_bonus_disc(transcode_out_path, job):
     """
-    A film's bonus disc (label ..._D2, ripped after the film): every title goes into the film's extras folder,
-    Title (Year)/extras/Title (Year) - disc 2 - 1.mkv, in title order
+    A film's later disc (label ..._D2, ripped after the film's first disc). A title of an hour or more is the film's
+    next part (Spartacus: 3 h 17 min on two discs): Title (Year) - part2.mkv, and the first disc's file becomes
+    - part1.mkv, the names Jellyfin, Plex and Emby play as one film. Every other title goes into the extras
+    folder, Title (Year)/extras/Title (Year) - disc 2 - 1.mkv, in title order.
     """
-    extras = os.path.join(job.path, job.config.EXTRAS_SUB)
-    utils.make_dir(extras)
-    disc = utils.film_disc(job.label)
+    # ponytail: length alone decides; a feature-length documentary on a bonus disc would count as a part
+    base = os.path.basename(job.path)
     ext = "." + job.config.DEST_EXT
-    files = [f for f in os.listdir(transcode_out_path) if f.endswith(ext)]
-    files.sort(key=lambda f: (series.title_number(f), f))
+    disc = utils.film_disc(job.label)
+    lengths = {t.filename: t.length or 0 for t in job.tracks}
+    files = sorted((f for f in os.listdir(transcode_out_path) if f.endswith(ext)),
+                   key=lambda f: (series.title_number(f), f))
+    part = max(files, key=lambda f: lengths.get(f, 0), default=None)
+    if part and lengths.get(part, 0) >= FILM_PART_MIN:
+        film = os.path.join(job.path, base + ext)
+        if os.path.isfile(film):
+            logging.info(f"Disc {disc} continues the film: {film} becomes part 1")
+            os.rename(film, os.path.join(job.path, f"{base} - part1{ext}"))
+        new_file = os.path.join(job.path, f"{base} - part{disc}{ext}")
+        logging.info(f"Disc {disc}: moving {part} ({lengths[part] // 60} min) to {new_file}")
+        utils.move_files_main(os.path.join(transcode_out_path, part), new_file, job.path)
+        files.remove(part)
+    extras = os.path.join(job.path, job.config.EXTRAS_SUB)
     for number, file in enumerate(files, 1):
-        new_file = os.path.join(extras, f"{os.path.basename(job.path)} - disc {disc} - {number}{ext}")
+        utils.make_dir(extras)
+        new_file = os.path.join(extras, f"{base} - disc {disc} - {number}{ext}")
         logging.info(f"Bonus disc {disc}: moving {file} to {new_file}")
         utils.move_files_main(os.path.join(transcode_out_path, file), new_file, extras)
 
