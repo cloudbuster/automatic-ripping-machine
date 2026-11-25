@@ -354,10 +354,12 @@ def scan_emby():
 
     if cfg.arm_config["EMBY_REFRESH"]:
         logging.info("Sending Emby library scan request")
-        url = f"http://{cfg.arm_config['EMBY_SERVER']}:{cfg.arm_config['EMBY_PORT']}/Library/Refresh?api_key={cfg.arm_config['EMBY_API_KEY']}"  # noqa: E501
-        # A failed scan request (server down, wrong key) must not fail a job whose files are already in place
+        url = f"http://{cfg.arm_config['EMBY_SERVER']}:{cfg.arm_config['EMBY_PORT']}/Library/Refresh"
+        # The key in a header, not the URL, so it stays out of the log. A failed scan request (server down,
+        # wrong key) must not fail a job whose files are already in place
         try:
-            requests.post(url, timeout=30).raise_for_status()
+            requests.post(url, headers={"X-Emby-Token": str(cfg.arm_config["EMBY_API_KEY"])},
+                          timeout=30).raise_for_status()
             logging.info("Emby Library Scan request successful")
         except requests.exceptions.RequestException as error:
             logging.error(f"Emby Library Scan request failed: {error}")
