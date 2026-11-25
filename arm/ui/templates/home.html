@@ -1,13 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{{ arm_name }}</title>
-    <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+    {% set page_title = arm_name %}{% include "glass_head.html" %}
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <script>try { const t = localStorage.getItem('arm-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 </head>
 <!-- Home page: everything below main is filled in by static/js/home.js from json?mode=home (arm/ui/home_api.py) -->
 <body class="font-sans" data-refresh="{{ refresh }}" data-auth="{{ 1 if authenticated else 0 }}">

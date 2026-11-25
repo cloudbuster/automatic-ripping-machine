@@ -1,165 +1,39 @@
-
-{% block drives %}
-    <div class="card">
-        <div class="card-header">Disk Drives</div>
-        <div class="card-body">
-            {% if drives %}
-                <div class="accordion" id="drivesAccordion">
-                    {% for drive in drives %}
-                        <div class="row">
-                            <div class="card">
-                                <form id="systemForm" name="systemForm" action="/systeminfo" method="post">
-                                    {{ form_drive.hidden_tag() }}
-                                    <div class="card-header" id="{{ drive.serial_id }}">
-                                        <button class="btn" type="button" data-toggle="collapse" data-target="#drive{{drive.drive_id}}" aria-expanded="true" aria-controls="drive{{drive.drive_id}}">
-                                            {{ drive.name }}
-                                        </button>
-                                    </div>
-                                    <div id="drive{{drive.drive_id}}" class="collapse show" aria-labelledby="{{drive.serial_id}}">
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-sm-9">
-                                                    <div class="form-group row my-0">
-                                                        <div class="col-sm-4 col-form-label px-1">Serial</div>
-                                                        <div class="col-sm-8 col-form-label px-1 small" id="type">
-                                                            {{ drive.maker }}
-                                                            <i>{{drive.model}}</i>
-                                                            {{drive.serial | mask_last(4)}}
-                                                            (FW{{drive.firmware}})
-                                                            {{drive.connection|upper or '' }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group row my-0">
-                                                        <div class="col-sm-4 col-form-label px-1">Type</div>
-                                                        <div class="col-sm-8 col-form-label px-1 small" id="type">{{ drive.type }}</div>
-                                                    </div>
-                                                    {% if drive.mount %}
-                                                        <div class="form-group row my-0">
-                                                            <div class="col-sm-4 col-form-label px-1 px-1">Mount Path</div>
-                                                            <div class="col-sm-8 col-form-label px-1 small" alt="test">{{ drive.mount }}</div>
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="col-sm-3">
-                                                    <figure class="figure small float-right">
-                                                        <!-- drive.tray queries (live) kernel drive status (blocking) -->
-                                                        {% if drive.stale or drive.tray is none %}
-                                                            <!-- image modified from source: https://openclipart.org/detail/36619/tango-audio-volume-muted -->
-                                                            <img
-                                                                class="img-fluid"
-                                                                src="static/img/drive-optical_stale.svg"
-                                                                alt="Drive Unavailable"
-                                                                {% if drive.stale %}
-                                                                    title="stale"
-                                                                {% else %}
-                                                                    title="{{ drive.tray }}"
-                                                                {% endif %}
-                                                            >
-                                                        {% elif drive.open %}
-                                                            <!-- image from source: https://openclipart.org/detail/34543/tango-drive-optical -->
-                                                            <a href="drive/eject/{{ drive.drive_id }}">
-                                                                <img
-                                                                    class="img-fluid"
-                                                                    src="static/img/drive-optical_open.svg"
-                                                                    alt="Drive Open"
-                                                                    title="{{ drive.tray }}"
-                                                                >
-                                                            </a>
-                                                        {% else %}
-                                                            <a href="drive/eject/{{ drive.drive_id }}">
-                                                                <!-- image modified from source: https://openclipart.org/detail/86713/cycle-icon -->
-                                                                <img
-                                                                    class="img-fluid"
-                                                                    {% if drive.processing %}
-                                                                        src="static/img/drive-optical_closed_processing.svg"
-                                                                    {% else %}
-                                                                        src="static/img/drive-optical_closed.svg"
-                                                                    {% endif %}
-                                                                    alt="Drive Closed"
-                                                                    title="{{ drive.tray }}"
-                                                                >
-                                                            </a>
-                                                        {% endif %}
-                                                        <figcaption class="figure-caption text-left invisible">Placeholder</figcaption>
-                                                    </figure>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    {% if drive.location %}
-                                                        <div class="form-group row my-0">
-                                                            <div class="col-sm-3 col-form-label px-1 px-1">Connection</div>
-                                                            <div class="col-sm-9 col-form-label px-1">{{ drive.location }}</div>
-                                                        </div>
-                                                    {% endif %}
-                                                    {% if drive.job_current %}
-                                                        <div class="form-group row my-0">
-                                                            <div class="col-sm-3 col-form-label px-1">Current Job</div>
-                                                            <div class="col-sm-9 col-form-label px-1 small">
-                                                                <a href="/jobdetail?job_id={{ drive.job_current.job_id }}">
-                                                                    <span class="text-capitalize">{{ drive.job_current.video_type }}</span> - {{ drive.job_current.title }} - {{ drive.job_current.year }}
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    {% if drive.job_previous %}
-                                                        <div class="form-group row my-0">
-                                                            <div class="col-sm-3 col-form-label px-1 px-1">Previous Job</div>
-                                                            <div class="col-sm-9 col-form-label px-1 small">
-                                                                <a href="/jobdetail?job_id={{ drive.job_previous.job_id }}">
-                                                                    <span class="text-capitalize">{{ drive.job_previous.video_type }}</span> - {{ drive.job_previous.title }} - {{ drive.job_previous.year }}
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    <div class="form-group row my-0">
-                                                        <label for="name" class="col-sm-3 col-form-label px-1">Name</label>
-                                                        <input class="col-sm-9 form-control form-control-sm px-1" type="text" id="name" name="name" maxlength="100" value="{{ drive.name }}">
-                                                        <input type="hidden" id="id" name="id" value="{{ drive.drive_id }}">
-                                                    </div>
-                                                    <div class="form-group row my-0">
-                                                        <label for="description" class="col-sm-3 col-form-label px-1">Description</label>
-                                                        <input class="col-sm-9 form-control form-control-sm px-1" type="text" id="description" name="description" maxlength="200" value="{{ drive.description }}">
-                                                        <input type="hidden" id="id" name="id" value="{{ drive.drive_id }}">
-                                                    </div>
-                                                    <div class="form-group row my-0">
-                                                        <label for="drive_mode" class="col-sm-3 col-form-label px-1">Drive Mode</label>
-                                                        <select class="col-sm-9 form-control form-control-sm px-1" id="drive_mode" name="drive_mode">
-                                                            <option value="auto" {% if drive.drive_mode == 'auto' %}selected{% endif %}>Auto</option>
-                                                            <option value="manual" {% if drive.drive_mode == 'manual' %}selected{% endif %}>Manual</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer">
-                                            <div class="col-sm-12 d-grid gap-2">
-                                                <button type="submit" class="btn btn-primary btn-sm text-nowrap" name="submit">
-                                                    Update
-                                                </button>
-                                                <a href="drive/manual/{{ drive.drive_id }}" class="btn btn-secondary btn-sm text-nowrap">
-                                                    Manual
-                                                </a>
-                                                <a href="drive/remove/{{ drive.drive_id }}" class="btn btn-outline-danger btn-sm text-nowrap">
-                                                    Remove
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="card text-white bg-danger">
-                    No drives installed on this system.
-                </div>
-            {% endif %}
-        </div>
-        <div class="card-footer">
-            <p><a href="systemdrivescan">Scan for Drives</a></p>
-            <p><i><u>Note:</u> Ripping does not require drives to be listed in the UI here. However, if a drive does not show up, there may be an issue with the docker container settings.</i></p>
-        </div>
+<article class="glass rounded-2xl p-6">
+    <div class="flex items-baseline justify-between">
+        <p class="label">Drives</p>
+        <a href="systemdrivescan" class="text-sm font-medium text-accent">Scan</a>
     </div>
-{% endblock %}
+    {% for drive in drives %}
+        <form action="systeminfo" method="post" class="{{ 'divider mt-4 pt-4' if not loop.first else 'mt-2' }}">
+            {{ form_drive.hidden_tag() }}
+            <input type="hidden" name="id" value="{{ drive.drive_id }}">
+            {% set tray = "Not available" if drive.stale or drive.tray is none else "Open" if drive.open
+                          else "Working" if drive.processing else "Closed" %}
+            <div class="flex items-center gap-2">
+                <p class="min-w-0 flex-1 truncate font-semibold">{{ drive.name or drive.mount }}</p>
+                <span class="pill {{ 'p-wait' if tray == 'Not available' else 'p-acc' if tray == 'Working' else 'p-ok' }}"><span class="dot"></span>{{ tray }}</span>
+            </div>
+            <p class="text-sm text-muted">{{ [(drive.maker or "") ~ " " ~ (drive.model or ""), drive.type, drive.mount,
+                ("serial " ~ (drive.serial | mask_last(4))) if drive.serial, ("FW " ~ drive.firmware) if drive.firmware]
+                | map("trim") | select | join(" · ") }}</p>            {% if drive.job_current %}<p class="mt-1 text-sm">Now: <a class="text-accent" href="jobdetail?job_id={{ drive.job_current.job_id }}">{{ drive.job_current.title }}</a></p>{% endif %}
+            {% if drive.job_previous %}<p class="mt-1 text-sm">Last: <a class="text-accent" href="jobdetail?job_id={{ drive.job_previous.job_id }}">{{ drive.job_previous.title }}</a></p>{% endif %}
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label class="text-sm"><span class="label">Name</span><input class="field" name="name" maxlength="100" value="{{ drive.name or '' }}"></label>
+                <label class="text-sm"><span class="label">Mode</span>
+                    <select class="field" name="drive_mode">
+                        <option value="auto" {{ 'selected' if drive.drive_mode == 'auto' }}>Automatic</option>
+                        <option value="manual" {{ 'selected' if drive.drive_mode == 'manual' }}>Manual (pick titles)</option>
+                    </select></label>
+                <label class="text-sm sm:col-span-2"><span class="label">Description</span><input class="field" name="description" maxlength="200" value="{{ drive.description or '' }}"></label>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <button type="submit" name="submit" class="btn">Save</button>
+                <a href="drive/eject/{{ drive.drive_id }}" class="btn">{{ "Close tray" if drive.open else "Eject" }}</a>
+                <a href="drive/manual/{{ drive.drive_id }}" class="btn">Start manual</a>
+                <a href="drive/remove/{{ drive.drive_id }}" class="btn btn-bad">Remove</a>
+            </div>
+        </form>
+    {% else %}
+        <p class="mt-2 text-sm text-bad">No drives found. Ripping works without them being listed here; if one is missing, check the container's device settings, then Scan.</p>
+    {% endfor %}
+</article>

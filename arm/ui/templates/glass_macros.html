@@ -1,0 +1,15 @@
+{# Shared pieces of the glass pages; the same labels as STATES in static/js/home.js #}
+{% macro pill(status) %}
+    {%- set states = {"active": ("Starting", "p-acc"), "info": ("Reading disc", "p-acc"), "waiting": ("Waiting", "p-wait"),
+                      "ripping": ("Ripping", "p-acc"), "waiting_transcode": ("Waiting", "p-wait"),
+                      "transcoding": ("Encoding", "p-acc"), "success": ("Done", "p-ok"), "fail": ("Failed", "p-bad")} -%}
+    {%- set s = states.get(status, (status or "Unknown", "p-wait")) -%}
+    <span class="pill {{ s[1] }}"><span class="dot"></span>{{ s[0] }}</span>
+{%- endmacro %}
+
+{% macro cover(job, size="cover") %}
+    {%- set poster = job.poster_url_manual or job.poster_url or "" -%}
+    {%- if poster.startswith("http") -%}<img class="{{ size }}" src="{{ poster }}" alt="" loading="lazy">
+    {%- else -%}<div class="{{ size }}" aria-hidden="true" style="background: linear-gradient(160deg, var(--accent), #0f172a)">
+        {{- "CD" if job.disctype == "music" else "BD" if job.disctype == "bluray" else "DVD" }}</div>{%- endif -%}
+{%- endmacro %}

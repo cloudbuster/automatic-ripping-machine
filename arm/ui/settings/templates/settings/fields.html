@@ -1,0 +1,11 @@
+{# One labelled text field per setting, with its comment from comments.json under it #}
+{% macro fields(items, comments, read_only, file) %}
+    {% for k, v in items %}
+        <label class="block py-3 {{ '' if loop.first else 'divider' }}">
+            <span class="font-mono text-sm font-semibold">{{ k }}</span>
+            <input class="field font-mono" name="{{ k }}" type="{{ 'password' if ('_KEY' in k or '_API' in k or 'PASSWORD' in k or 'TOKEN' in k) else 'text' }}" autocomplete="off" value="{{ v }}" spellcheck="false"
+                   {% if read_only %}disabled title="{{ file }} is read-only"{% endif %}>
+            {% if comments and comments.get(k) %}<span class="mt-1 block whitespace-pre-line text-xs text-muted">{{ comments[k] | replace("#", "") | trim }}</span>{% endif %}
+        </label>
+    {% endfor %}
+{% endmacro %}

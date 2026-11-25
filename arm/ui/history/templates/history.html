@@ -1,109 +1,46 @@
-{% extends "base.html" %}
-
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/job_details.css') }}">
-<style>
-    /*
-    Max width before this PARTICULAR table gets nasty
-    This query will take effect for any screen smaller than 760px
-    and also iPads specifically.
-    */
-    @media only screen and (max-width: 760px),
-    (min-device-width: 768px) and (max-device-width: 1024px) {
-        /*
-        Label the data
-        */
-        td:nth-of-type(1):before {
-            content: "Job Start datetime:\A";
-        }
-
-        td:nth-of-type(2):before {
-            content: "Duration:";
-        }
-
-        td:nth-of-type(2):after {
-            content: " (h:mm:ss)";
-        }
-
-        td:nth-of-type(3):before {
-            content: "Status:";
-        }
-
-        td:nth-of-type(4):before {
-            content: "Logfile:\A";
-        }
-    }
-
-    .hidden {
-        display: none;
-    }
-</style>
-<div class="container content">
-    <div class="row">
-        <div class="col-12">
-            <div class="table-responsive">
-                <div class="jumbotron">
-                    <div class="row">
-                        <div class="col-sm-12  rounded text-center">
-                            <img src="static/img/arm80.png" alt=""><br/>
-                            <strong>Welcome to your Automatic Ripping Machine<br></strong>
-                        </div>
-                    </div>
-                    <br>
-                    {% with pages=pages, page_name="route_history.history" %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
-                    <!-- Main Body -->
-                    <div class="row">
-                        <table class="table table-striped">
-                            <caption>Previous rips</caption>
-                            <thead class="tablesorterhead thead-dark">
-                            <tr style="margin: 0 auto">
-                                <th scope="col" style="cursor: pointer;">Title</th>
-                                <th scope="col" style="cursor: pointer;">Start Time</th>
-                                <th scope="col" style="cursor: pointer;">Duration</th>
-                                <th scope="col" style="cursor: pointer;">Status</th>
-                                <th scope="col" style="cursor: pointer;">Logfile</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for job in jobs %}
-                            <tr>
-                                <th scope="row" class="text-wrap"><a href="jobdetail?job_id={{ job.job_id }}">{{
-                                    job.title|truncate(50, True) if job.title is not none else 'Title unknown' }}</a>
-                                </th>
-                                <td>{{ job.start_time.strftime(date_format) if job.start_time is not none }}</td>
-                                <td class="hidden">{{ job.start_time if job.start_time is not none }}</td>
-                                <td>{{ job.job_length }}</td>
-                                <td class="{{ job.status }}"><img src="static/img/{{ job.status }}.png" height="30px"
-                                                                  width="30px" alt="{{ job.status }}"
-                                                                  title="{{ job.status }}"></td>
-                                <td><a href="logs?logfile={{ job.logfile }}&mode=full">{{ job.logfile|truncate(50, True)
-                                    if job.logfile is not none else 'Unknown logfile' }}</a></td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% with pages=pages, page_name="route_history.history" %}
-                        {% include "pagination.html" %}
-                    {% endwith %}
-                </div>
-            </div>
-        </div>
+<!doctype html>
+{# Every job, newest first, in the home page's glass look; paginated by history.history (UI setting database_limit) #}
+{% from "glass_macros.html" import pill, cover %}
+<html lang="en">
+<head>
+    {% set page_title = "History · ARM" %}{% include "glass_head.html" %}
+</head>
+<body class="font-sans">
+<main class="mx-auto max-w-4xl py-14 sm:py-16">
+    {% include "glass_top.html" %}
+    <div class="mb-3 mt-5 flex items-baseline justify-between px-1">
+        <h1 class="text-3xl font-extrabold tracking-tight">History</h1>
+        <span class="text-sm text-muted">{{ pages.total }} jobs</span>
     </div>
-    {% endblock %}
-    {% block footer %}{{ super() }}{% endblock %}
-    {% block js %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='js/jquery.tablesorter.js') }}"></script>
-
-    <script type="application/javascript">
-        $(document).ready(function () {
-            $("table").tablesorter({});
-
-        });
-        activeTab("history");
-    </script>
-
-    {% endblock %}
+    <ol class="flex flex-col gap-3">
+        {% for job in jobs %}
+            <li class="glass lift flex items-center gap-4 rounded-2xl p-4">
+                {{ cover(job) }}
+                <a href="jobdetail?job_id={{ job.job_id }}" class="min-w-0 flex-1">
+                    <p class="truncate font-semibold">{{ job.title_manual or job.title or job.label or "Unknown disc" }}
+                        {% if job.year_manual or job.year %}<span class="font-normal text-muted">({{ job.year_manual or job.year }})</span>{% endif %}</p>
+                    <p class="truncate text-sm text-muted">{{ job.label or "" }}
+                        {% if job.start_time %} · {{ job.start_time.strftime(date_format) }}{% endif %}
+                        {% if job.job_length %} · {{ job.job_length }}{% endif %}</p>
+                </a>
+                {{ pill(job.status) }}
+                {% if job.logfile %}<a href="logs?logfile={{ job.logfile }}&mode=full" class="btn hidden sm:inline-block">Log</a>{% endif %}
+            </li>
+        {% else %}
+            <li class="glass rounded-2xl p-6 text-muted">No jobs yet.</li>
+        {% endfor %}
+    </ol>
+    {% if pages.pages > 1 %}
+        <nav class="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label="Pages">
+            {% if pages.has_prev %}<a class="btn" href="{{ url_for('route_history.history', page=pages.prev_num) }}">&larr; Newer</a>{% endif %}
+            {% for n in pages.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if n is none %}<span class="text-muted">&hellip;</span>
+                {% elif n == pages.page %}<span class="btn" aria-current="page" style="box-shadow: 0 0 0 1px var(--accent); color: var(--accent)">{{ n }}</span>
+                {% else %}<a class="btn" href="{{ url_for('route_history.history', page=n) }}">{{ n }}</a>{% endif %}
+            {% endfor %}
+            {% if pages.has_next %}<a class="btn" href="{{ url_for('route_history.history', page=pages.next_num) }}">Older &rarr;</a>{% endif %}
+        </nav>
+    {% endif %}
+</main>
+</body>
+</html>

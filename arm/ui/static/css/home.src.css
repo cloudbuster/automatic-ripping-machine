@@ -43,6 +43,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 h1, h2 { text-wrap: balance; }
+[hidden] { display: none !important; }  /* over display utilities such as grid */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 @layer components {
@@ -80,3 +81,12 @@ h1, h2 { text-wrap: balance; }
 
 /* Native checkboxes in the accent color */
 input[type="checkbox"] { accent-color: var(--accent); width: 1rem; height: 1rem; }
+@layer components { .cover-lg { width: 10rem; height: 14rem; border-radius: .75rem; font-size: 1.75rem; } }
+@layer components {
+  .field { display: block; width: 100%; margin-top: .35rem; border-radius: .75rem; padding: .5rem .75rem; font-size: .875rem;
+    background: var(--glass); color: var(--ink); box-shadow: 0 0 0 1px var(--ring); }
+  .field:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+  .field:disabled { opacity: .6; }
+  .btn[aria-current] { box-shadow: 0 0 0 1px var(--accent); color: var(--accent); background: var(--acc-bg); }
+  .btn:disabled { opacity: .5; pointer-events: none; }
+}

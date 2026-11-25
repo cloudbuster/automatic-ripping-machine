@@ -1,0 +1,7 @@
+{# <head> of the glass pages (home, job details, history, settings); set page_title before including #}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ page_title }}</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+<script>try { const t = localStorage.getItem('arm-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>

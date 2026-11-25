@@ -1,0 +1,6 @@
+{# Top of a glass sub-page: theme button, link home, flashed messages #}
+{% include "glass_toggle.html" %}
+<a href="./" class="text-sm font-medium text-accent">&larr; Home</a>
+{% for category, message in get_flashed_messages(with_categories=true) %}
+    <p class="glass mt-5 rounded-2xl p-4 text-sm {{ 'text-bad' if category in ('danger', 'error') else '' }}" role="status">{{ message }}</p>
+{% endfor %}

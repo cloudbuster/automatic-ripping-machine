@@ -1,41 +1,22 @@
 <!doctype html>
 {# Job details in the home page's glass look (static/css/home.src.css). The track form is jobs.jobdetail_load's. #}
 {% set music = jobs.video_type == "Music" or jobs.disctype == "music" %}
-{% set states = {"active": ("Starting", "p-acc"), "info": ("Reading disc", "p-acc"), "waiting": ("Waiting", "p-wait"),
-                 "ripping": ("Ripping", "p-acc"), "waiting_transcode": ("Waiting", "p-wait"),
-                 "transcoding": ("Encoding", "p-acc"), "success": ("Done", "p-ok"), "fail": ("Failed", "p-bad")} %}
-{% set state = states.get(jobs.status, (jobs.status or "Unknown", "p-wait")) %}
-{% set poster = jobs.poster_url_manual or jobs.poster_url or "" %}
+{% from "glass_macros.html" import pill, cover %}
 {% set title = jobs.title_manual or jobs.title or jobs.label or "Unknown disc" %}
 {% macro hms(length) %}{% set s = ((length or 0) // (1000 if music else 1)) | int %}{{ "%d:%02d:%02d" | format(s // 3600, s % 3600 // 60, s % 60) if s >= 3600 else "%d:%02d" | format(s // 60, s % 60) }}{% endmacro %}
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{{ title }} · ARM</title>
-    <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <script>try { const t = localStorage.getItem('arm-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+    {% set page_title = title ~ " · ARM" %}{% include "glass_head.html" %}
 </head>
 <body class="font-sans">
-{% include "glass_toggle.html" %}
 <main class="mx-auto max-w-4xl py-14 sm:py-16">
-    <a href="./" class="text-sm font-medium text-accent">&larr; Home</a>
-
-    {% for category, message in get_flashed_messages(with_categories=true) %}
-        <p class="glass mt-5 rounded-2xl p-4 text-sm {{ 'text-bad' if category in ('danger', 'error') else '' }}" role="status">{{ message }}</p>
-    {% endfor %}
+    {% include "glass_top.html" %}
 
     <section class="glass mt-5 flex flex-col gap-6 rounded-2xl p-6 sm:flex-row" aria-label="Disc">
-        {% if poster.startswith("http") %}
-            <img src="{{ poster }}" alt="" class="h-56 w-40 flex-none self-center rounded-xl object-cover sm:self-start">
-        {% else %}
-            <div aria-hidden="true" class="grid h-56 w-40 flex-none place-items-center self-center rounded-xl text-3xl font-extrabold text-white sm:self-start"
-                 style="background: linear-gradient(160deg, var(--accent), #0f172a)">{{ "CD" if music else "BD" if jobs.disctype == "bluray" else "DVD" }}</div>
-        {% endif %}
+        {{ cover(jobs, "cover cover-lg self-center sm:self-start") }}
         <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-                <span class="pill {{ state[1] }}"><span class="dot"></span>{{ state[0] }}</span>
+                {{ pill(jobs.status) }}
                 <span class="label">{{ {"bluray": "Blu-ray", "dvd": "DVD", "music": "CD", "data": "Data"}.get(jobs.disctype, jobs.disctype or "") }} · {{ jobs.video_type or "" }}</span>
             </div>
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ title }}
