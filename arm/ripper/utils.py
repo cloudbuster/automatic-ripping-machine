@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Collection of utility functions"""
 import datetime
+import itertools
 import os
 import logging
 import subprocess
@@ -929,3 +930,18 @@ def get_drive_mode(devpath: str) -> str:
     else:
         mode = 'auto'
     return mode
+
+
+def find_play_all(lengths):
+    """
+    Find a series disc's "Play All" title: one whose length is that of some of the others back to back
+    (the episodes; any title left over is an extra).\n\n
+    :param lengths: dict of title name -> length in seconds\n
+    :return: name of the Play All title, or None
+    """
+    for name, length in lengths.items():
+        others = [v for k, v in lengths.items() if k != name]
+        for count in range(len(others), 1, -1):
+            if any(abs(length - sum(c)) <= 0.02 * length for c in itertools.combinations(others, count)):
+                return name
+    return None
