@@ -197,7 +197,8 @@ def move_files_post(transcode_out_path, job):
     tracks = job.tracks.filter_by(ripped=True)  # .order_by(job.tracks.length.desc())
     if job.video_type == "series":
         for track in tracks:
-            utils.move_files(transcode_out_path, track.filename, job, False)
+            if track.status != "skipped":  # Play All, not transcoded (handbrake_mkv)
+                utils.move_files(transcode_out_path, track.filename, job, False)
     else:
         for track in tracks:
             if tracks.count() == 1:
