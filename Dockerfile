@@ -67,6 +67,14 @@ FROM base AS automatic-ripping-machine
 
 # Copy over source code
 COPY . /opt/arm/
+# Home page styles: Tailwind's standalone CLI (no Node), checked against its published SHA-256
+RUN curl -fsSL -o /tmp/tailwindcss \
+        https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64 && \
+    echo "7d24f7fa191d2193b78cd5f5a42a6093e14409521908529f42d80b11fde1f1d4  /tmp/tailwindcss" | sha256sum -c - && \
+    chmod +x /tmp/tailwindcss && \
+    /tmp/tailwindcss -c /opt/arm/arm/ui/tailwind.config.js -i /opt/arm/arm/ui/static/css/home.src.css \
+        -o /opt/arm/arm/ui/static/css/home.css --minify && \
+    rm /tmp/tailwindcss
 
 # Our docker udev rule
 RUN ln -sv /opt/arm/setup/51-docker-arm.rules /lib/udev/rules.d/

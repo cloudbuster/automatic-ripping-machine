@@ -19,6 +19,7 @@ from flask import render_template, request, Blueprint, flash, redirect, url_for
 from werkzeug.routing import ValidationError
 
 import arm.ui.utils as ui_utils
+from arm.ui import home_api  # noqa: E402
 from arm.ui import app, db, constants, json_api
 from arm.models.job import Job, JobState
 from arm.models.notifications import Notifications
@@ -334,6 +335,7 @@ def feed_json():
             },
             'fixperms': {'funct': ui_utils.fix_permissions, 'args': ('j_id',)},
             'joblist': {'funct': json_api.get_x_jobs, 'args': ('joblist',)},
+            'home': {'funct': home_api.home_status, 'args': ()},
             'send_item': {'funct': ui_utils.send_to_remote_db, 'args': ('j_id',)},
             'change_job_params': {'funct': json_api.change_job_params, 'args': ('config_id',)},
             'read_notification': {'funct': json_api.read_notification, 'args': ('notify_id',)},
@@ -345,6 +347,7 @@ def feed_json():
         }
         valid_modes = {
             'joblist': {'funct': json_api.get_x_jobs, 'args': ('joblist',)},
+            'home': {'funct': home_api.home_status, 'args': ()},
         }
     # prepare JSON data
     if mode in valid_modes:

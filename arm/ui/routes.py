@@ -23,12 +23,9 @@ from sqlalchemy.exc import SQLAlchemyError
 import arm.ui.utils as ui_utils
 from arm.ui import app, db, constants
 from arm.models.job import Job
-from arm.models.system_info import SystemInfo
 from arm.models.user import User
 import arm.config.config as cfg
 from arm.ui.forms import DBUpdate
-from arm.ui.settings.ServerUtil import ServerUtil
-from arm.ui.settings.settings import check_hw_transcode_support
 
 # This attaches the armui_cfg globally to let the users use any bootswatch skin from cdn
 armui_cfg = ui_utils.arm_db_cfg()
@@ -47,8 +44,6 @@ def home():
     """
     # Check the database is current
     db_update = ui_utils.arm_db_check()
-    # Push out HW transcode status for the homepage
-    stats = {'hw_support': check_hw_transcode_support()}
     if not db_update["db_current"] or not db_update["db_exists"]:
         dbform = DBUpdate(request.form)
         app.logger.debug(f"Error with ARM DB: [{db_update['db_current']}]-[{db_update['db_exists']}]")
@@ -56,37 +51,22 @@ def home():
                                db_update=db_update,
                                dbform=dbform)
 
-    # Get system details from Server Info and Config
-    server = SystemInfo.query.filter_by(id="1").first()
-    serverutil = ServerUtil()
-    arm_path = cfg.arm_config['TRANSCODE_PATH']
-    media_path = cfg.arm_config['COMPLETED_PATH']
-
     # Page titles
     session["arm_name"] = cfg.arm_config['ARM_NAME']
     session["page_title"] = "Home"
 
     if os.path.isfile(cfg.arm_config['DBFILE']):
         try:
-            jobs = db.session.query(Job).filter(Job.status.notin_(['fail', 'success'])).all()
+            db.session.query(Job).first()
         except SQLAlchemyError as e:
             # db isn't setup
             app.logger.error(f"Error getting jobs from DB: {e}")
             return redirect(url_for('setup'))
-    else:
-        jobs = {}
 
-    # Set authentication state for index
-    authenticated = ui_utils.authenticated_state()
-
-    app.logger.debug(f'Authentication state: {authenticated}')
-
-    return render_template("index.html",
-                           authenticated=authenticated,
-                           jobs=jobs,
-                           children=cfg.arm_config['ARM_CHILDREN'],
-                           server=server, serverutil=serverutil,
-                           arm_path=arm_path, media_path=media_path, stats=stats)
+    # The page fills itself from json?mode=home (home_api.py, static/js/home.js)
+    refresh = getattr(armui_cfg, "index_refresh", None) or 2000
+    return render_template("home.html", authenticated=ui_utils.authenticated_state(),
+                           arm_name=cfg.arm_config['ARM_NAME'] or "ARM", refresh=refresh)
 
 
 @app.route('/error')

@@ -87,10 +87,19 @@ def main():
     if sys.argv[1:]:
         resume(int(sys.argv[1]))
         return
-    for job in interrupted_jobs():
+    jobs = interrupted_jobs()
+    for job in jobs:
         print(f"Resuming job {job.job_id} ({job.label})")
         subprocess.Popen([sys.executable, __file__, str(job.job_id)], start_new_session=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if jobs:
+        from arm.models.notifications import Notifications
+        from arm.ui import db
+        titles = ", ".join(sorted({j.title or j.label for j in jobs}))
+        message = (f"ARM was stopped while encoding {len(jobs)} disc(s) ({titles}). "
+                   "It is finishing them from their raw rips; no need to insert them again.")
+        db.session.add(Notifications("Resumed", message))
+        db.session.commit()
 
 
 if __name__ == "__main__":
