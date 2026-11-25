@@ -946,3 +946,17 @@ def find_play_all(lengths):
                 if abs(length - sum(lengths[k] for k in combo)) <= 0.02 * length:
                     return name, set(combo)
     return None
+
+
+def film_disc(label):
+    """
+    Disc number of a film's disc from its label, such as CRASH_DIRECTORS_CUT_D2 or FILM_DISC_2; 1 if it has none
+    """
+    match = re.search(r"(?:^|_)D(?:IS[CK])?_?(\d+)$", (label or "").upper())
+    return int(match[1]) if match else 1
+
+
+def has_film(folder, ext):
+    """True if a film's folder holds a video file of its own (not only extras/ or a poster)"""
+    return os.path.isdir(folder) and any(f.endswith("." + ext) and os.path.isfile(os.path.join(folder, f))
+                                         for f in os.listdir(folder))

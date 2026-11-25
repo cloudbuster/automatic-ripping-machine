@@ -47,6 +47,11 @@ def rip_visual_media(have_dupes, job, logfile, protection):
     if episodes:
         final_directory = series.show_path(job)  # shared by all discs of the show; file names are unique
         utils.make_dir(final_directory)
+    elif job.video_type == "movie" and not have_dupes and (
+            utils.film_disc(job.label) > 1 or not utils.has_film(final_directory, job.config.DEST_EXT)):
+        # A bonus disc (label ..._D2) shares the film's folder; its titles go to extras/ (move_files_post).
+        # A folder without the film (an earlier try failed) is reused, not left empty next to "Title (Year)_<n>".
+        utils.make_dir(final_directory)
     else:
         # If dupes rips is disabled this might kill the run
         final_directory = utils.check_for_dupe_folder(have_dupes, final_directory, job)
@@ -103,8 +108,11 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
     # Update final path if user has set a custom/manual title
     logging.debug(f"Job title status: [{job.title_manual}]")
     if job.title_manual and not (job.video_type == "series" and series.season_disc(job.label)):
-        # Remove the old final dir
-        utils.delete_raw_files([final_directory])
+        # Remove the old final dir if empty: it may be the folder of a film this disc is the bonus disc of
+        try:
+            os.rmdir(final_directory)
+        except OSError:
+            pass
         job_title = utils.fix_job_title(job)
         final_directory = os.path.join(job.config.COMPLETED_PATH, type_sub_folder, job_title)
         # Update the job.path with the final directory
@@ -230,6 +238,8 @@ def move_files_post(transcode_out_path, job):
                                       os.path.dirname(new_file))
             else:
                 utils.move_files(transcode_out_path, track.filename, job, False)
+    elif job.video_type == "movie" and utils.film_disc(job.label) > 1 and utils.has_film(job.path, job.config.DEST_EXT):
+        move_bonus_disc(transcode_out_path, job)
     else:
         for track in tracks:
             if tracks.count() == 1:
@@ -241,6 +251,23 @@ def move_files_post(transcode_out_path, job):
                     break
                 # If HandBrake was used we can pass track.main_feature
                 utils.move_files(transcode_out_path, track.filename, job, track.main_feature)
+
+
+def move_bonus_disc(transcode_out_path, job):
+    """
+    A film's bonus disc (label ..._D2, ripped after the film): every title goes into the film's extras folder,
+    Title (Year)/extras/Title (Year) - disc 2 - 1.mkv, in title order
+    """
+    extras = os.path.join(job.path, job.config.EXTRAS_SUB)
+    utils.make_dir(extras)
+    disc = utils.film_disc(job.label)
+    ext = "." + job.config.DEST_EXT
+    files = [f for f in os.listdir(transcode_out_path) if f.endswith(ext)]
+    files.sort(key=lambda f: (series.title_number(f), f))
+    for number, file in enumerate(files, 1):
+        new_file = os.path.join(extras, f"{os.path.basename(job.path)} - disc {disc} - {number}{ext}")
+        logging.info(f"Bonus disc {disc}: moving {file} to {new_file}")
+        utils.move_files_main(os.path.join(transcode_out_path, file), new_file, extras)
 
 
 def rip_with_mkv(current_job, protection=0):
