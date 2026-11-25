@@ -12,7 +12,7 @@ from pathlib import Path
 if find_spec("arm") is None:
     sys.path.append(str(Path(__file__).parents[2]))
 
-from arm.ripper import utils, makemkv, handbrake, ffmpeg  # noqa E402
+from arm.ripper import utils, makemkv, handbrake, ffmpeg, series  # noqa E402
 from arm.ui import app, db, constants  # noqa E402
 from arm.models.job import JobState  # noqa E402
 
@@ -29,6 +29,12 @@ def rip_visual_media(have_dupes, job, logfile, protection):
     """
     # Fix the sub-folder type - (movie|tv|unknown)
     type_sub_folder = utils.convert_job_type(job.video_type)
+    # A series disc with season and disc in its label goes into the show's folder (series.py); one without
+    # them can't be numbered, so a person sorts it
+    episodes = job.video_type == "series" and series.season_disc(job.label)
+    if job.video_type == "series" and not episodes:
+        logging.info(f"No season and disc in the label {job.label}: the episodes go to unidentified/")
+        type_sub_folder = "unidentified"
     # Fix the job title - Title (Year) | Title
     job_title = utils.fix_job_title(job)
 
@@ -38,8 +44,12 @@ def rip_visual_media(have_dupes, job, logfile, protection):
 
     # Check folders for already ripped jobs -> creates folder
     transcode_out_path = utils.check_for_dupe_folder(have_dupes, transcode_out_path, job)
-    # If dupes rips is disabled this might kill the run
-    final_directory = utils.check_for_dupe_folder(have_dupes, final_directory, job)
+    if episodes:
+        final_directory = series.show_path(job)  # shared by all discs of the show; file names are unique
+        utils.make_dir(final_directory)
+    else:
+        # If dupes rips is disabled this might kill the run
+        final_directory = utils.check_for_dupe_folder(have_dupes, final_directory, job)
 
     # Update the job.path with the final directory
     utils.database_updater({'path': final_directory}, job)
@@ -67,6 +77,8 @@ def rip_visual_media(have_dupes, job, logfile, protection):
         logging.info("************* Ripping with MakeMKV completed *************")
         # point HB/FFMPEG to the path MakeMKV ripped to
         transcode_in_path = makemkv_out_path
+        if job.video_type == "series":
+            series.plan(job)  # names in rip order; marks Play All skipped
     finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_path, transcode_out_path,
                         final_directory, makemkv_out_path)
 
@@ -90,7 +102,7 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
 
     # Update final path if user has set a custom/manual title
     logging.debug(f"Job title status: [{job.title_manual}]")
-    if job.title_manual:
+    if job.title_manual and not (job.video_type == "series" and series.season_disc(job.label)):
         # Remove the old final dir
         utils.delete_raw_files([final_directory])
         job_title = utils.fix_job_title(job)
@@ -208,7 +220,15 @@ def move_files_post(transcode_out_path, job):
     tracks = job.tracks.filter_by(ripped=True)  # .order_by(job.tracks.length.desc())
     if job.video_type == "series":
         for track in tracks:
-            if track.status != "skipped":  # Play All, not transcoded (handbrake_mkv)
+            if track.status == "skipped":  # Play All, not transcoded (series.plan)
+                continue
+            if track.new_filename:  # Season 03/Show S03E05.mkv or extras/... (series.plan)
+                new_file = os.path.join(job.path, track.new_filename)
+                utils.make_dir(os.path.dirname(new_file))
+                logging.info(f"Moving {track.filename} to {new_file}")
+                utils.move_files_main(os.path.join(transcode_out_path, track.filename), new_file,
+                                      os.path.dirname(new_file))
+            else:
                 utils.move_files(transcode_out_path, track.filename, job, False)
     else:
         for track in tracks:

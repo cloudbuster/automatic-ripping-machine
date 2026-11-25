@@ -11,11 +11,11 @@ class TestFindPlayAll(unittest.TestCase):
 
     def test_episodes_only(self):
         disc = {"t00.mkv": 2876, "t01.mkv": 2867, "t02.mkv": 2877, "t03.mkv": 2881, "t04.mkv": 11503}
-        self.assertEqual(find_play_all(disc), "t04.mkv")
+        self.assertEqual(find_play_all(disc), ("t04.mkv", {"t00.mkv", "t01.mkv", "t02.mkv", "t03.mkv"}))
 
     def test_episodes_and_extras(self):
         disc = {"t00.mkv": 2810, "t01.mkv": 2826, "t02.mkv": 2765, "t03.mkv": 8400, "t04.mkv": 2096, "t05.mkv": 1815}
-        self.assertEqual(find_play_all(disc), "t03.mkv")
+        self.assertEqual(find_play_all(disc), ("t03.mkv", {"t00.mkv", "t01.mkv", "t02.mkv"}))
 
     def test_no_play_all(self):
         self.assertIsNone(find_play_all({"t00.mkv": 2876, "t01.mkv": 2867, "t02.mkv": 2877, "t03.mkv": 2881}))

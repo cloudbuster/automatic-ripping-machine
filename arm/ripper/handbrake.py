@@ -232,18 +232,12 @@ def handbrake_mkv(srcpath, basepath, logfile, job):
     logging.info("Starting Handbrake for MKV files.")
     hb_args, hb_preset = correct_hb_settings(job)
 
-    play_all = None
-    if job.video_type == "series":
-        lengths = {t.filename: t.length or 0 for t in job.tracks}
-        play_all = utils.find_play_all({f: lengths[f] for f in os.listdir(srcpath) if f in lengths})
+    skipped = {t.filename for t in job.tracks if t.status == "skipped"}  # Play All (series.plan)
 
     # This will fail if the directory raw gets deleted
     for files in os.listdir(srcpath):
-        if files == play_all:
+        if files in skipped:
             logging.info(f"Skipping {shlex.quote(files)}: a Play All title (the episodes back to back)")
-            for track in job.tracks.filter_by(filename=files):
-                track.status = "skipped"
-            db.session.commit()
             continue
         srcpathname = os.path.join(srcpath, files)
         destfile = os.path.splitext(files)[0]

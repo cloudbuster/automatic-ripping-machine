@@ -937,11 +937,12 @@ def find_play_all(lengths):
     Find a series disc's "Play All" title: one whose length is that of some of the others back to back
     (the episodes; any title left over is an extra).\n\n
     :param lengths: dict of title name -> length in seconds\n
-    :return: name of the Play All title, or None
+    :return: (name of the Play All title, set of the episodes' names), or None
     """
     for name, length in lengths.items():
-        others = [v for k, v in lengths.items() if k != name]
+        others = [k for k in lengths if k != name]
         for count in range(len(others), 1, -1):
-            if any(abs(length - sum(c)) <= 0.02 * length for c in itertools.combinations(others, count)):
-                return name
+            for combo in itertools.combinations(others, count):
+                if abs(length - sum(lengths[k] for k in combo)) <= 0.02 * length:
+                    return name, set(combo)
     return None
