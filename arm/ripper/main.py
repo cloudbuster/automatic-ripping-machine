@@ -27,7 +27,7 @@ import arm.config.config as cfg  # noqa E402
 from arm.models.config import Config  # noqa: E402
 from arm.models.job import Job, JobState  # noqa: E402
 from arm.ripper.resume import RESUMABLE  # noqa: E402
-from arm.models.system_drives import SystemDrives  # noqa: E402
+from arm.models.system_drives import SystemDrives, CDS  # noqa: E402
 from arm.ripper import (arm_ripper, identify, logger,  # noqa: E402
                         music_brainz, utils)
 from arm.ripper.ARMInfo import ARMInfo  # noqa E402
@@ -189,6 +189,10 @@ def setup():
         logging.info(msg)
         time.sleep(1)
     else:  # no break
+        if drive.tray in (CDS.TRAY_OPEN, CDS.NO_DISC):
+            # udev fires on the tray opening too (ARM ejects every finished disc): nothing to rip, no error to send
+            logging.info(f"No disc in {drive.mount} (tray status: {drive.tray}): nothing to do")
+            sys.exit(0)
         raise utils.RipperException(f"Timed out waiting for drive to be ready (ioctl tray status: {drive.tray}).")
 
     # ARM Job starts
