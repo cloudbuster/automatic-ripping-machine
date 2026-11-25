@@ -15,22 +15,17 @@ from arm.ui import json_api
 FINISHED = (JobState.SUCCESS.value, JobState.FAILURE.value)
 
 
-def _year(job):
-    match = re.match(r"\d{4}", job.year_manual or job.year or "")
-    return match[0] if match else ""
-
-
 def _episodes(tracks):
     return sorted(int(m[1]) for t in tracks if t.new_filename and (m := re.search(r"S\d+E(\d+)", t.new_filename)))
 
 
 def job_summary(job):
-    from arm.ripper.series import season_disc
+    from arm.ripper.series import first_year, season_disc
     tracks = [t for t in job.tracks if t.ripped]
     kept = [t for t in tracks if t.status != "skipped"]
     season, disc = season_disc(job.label) or (None, None)
     return {
-        "id": job.job_id, "title": job.title_manual or job.title or job.label or "Unknown disc", "year": _year(job),
+        "id": job.job_id, "title": job.title_manual or job.title or job.label or "Unknown disc", "year": first_year(job),
         "label": job.label, "disctype": job.disctype, "video_type": job.video_type, "status": job.status,
         "poster": job.poster_url_manual or job.poster_url or "", "season": season, "disc": disc,
         "episodes": _episodes(tracks),

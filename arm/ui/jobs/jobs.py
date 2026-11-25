@@ -7,7 +7,6 @@ Covers
 - custometitle [GET]
 - gettitle / customtitle [GET]
 - updatetitle [GET]
-- activerips [GET]
 - changeparams [GET]
 - list_titles [GET]
 - json [JSON GET]
@@ -19,7 +18,7 @@ from flask import render_template, request, Blueprint, flash, redirect, url_for
 from werkzeug.routing import ValidationError
 
 import arm.ui.utils as ui_utils
-from arm.ui import home_api  # noqa: E402
+from arm.ui import home_api
 from arm.ui import app, db, constants, json_api
 from arm.models.job import Job, JobState
 from arm.models.notifications import Notifications
@@ -233,15 +232,6 @@ def updatetitle():
     flash(f'Title: {old_title} ({old_year}) was updated to '
           f'{request.args.get("title")} ({request.args.get("year")})', "success")
     return redirect("/")
-
-
-@route_jobs.route('/activerips')
-@login_required
-def rips():
-    """
-    Old list of running jobs; the home page shows them now
-    """
-    return redirect(url_for('home'))
 
 
 @route_jobs.route('/changeparams')

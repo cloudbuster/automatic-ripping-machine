@@ -1,6 +1,7 @@
 """ Main file for running DVDs/Blu-rays/CDs/data ?
 It would help clear up main and make things easier to find
 """
+import contextlib
 import sys
 import os
 import logging
@@ -109,10 +110,8 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
     logging.debug(f"Job title status: [{job.title_manual}]")
     if job.title_manual and not (job.video_type == "series" and series.season_disc(job.label)):
         # Remove the old final dir if empty: it may be the folder of a film this disc is the bonus disc of
-        try:
+        with contextlib.suppress(OSError):
             os.rmdir(final_directory)
-        except OSError:
-            pass
         job_title = utils.fix_job_title(job)
         final_directory = os.path.join(job.config.COMPLETED_PATH, type_sub_folder, job_title)
         # Update the job.path with the final directory
