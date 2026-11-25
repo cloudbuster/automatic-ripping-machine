@@ -53,6 +53,7 @@ RUN chmod +x /etc/service/armui/run
 RUN mkdir -p /etc/my_init.d
 COPY ./scripts/docker/runit/arm_user_files_setup.sh /etc/my_init.d/arm_user_files_setup.sh
 COPY ./scripts/docker/runit/start_udev.sh /etc/my_init.d/start_udev.sh
+COPY ./scripts/docker/runit/resume_jobs.sh /etc/my_init.d/resume_jobs.sh
 RUN chmod +x /etc/my_init.d/*.sh
 
 # We need to use a modified udev

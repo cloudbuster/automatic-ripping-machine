@@ -67,6 +67,17 @@ def rip_visual_media(have_dupes, job, logfile, protection):
         logging.info("************* Ripping with MakeMKV completed *************")
         # point HB/FFMPEG to the path MakeMKV ripped to
         transcode_in_path = makemkv_out_path
+    finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_path, transcode_out_path,
+                        final_directory, makemkv_out_path)
+
+
+def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_path, transcode_out_path,
+                        final_directory, makemkv_out_path):
+    """
+    Everything after the rip: transcode, move to the final folder, clean up.
+    Also run on its own by resume.py for a job stopped while transcoding.
+    """
+    type_sub_folder = utils.convert_job_type(job.video_type)
     # Begin transcoding section - only transcode if skip_transcode is false
     start_transcode(job, logfile, transcode_in_path, transcode_out_path, protection)
 
