@@ -747,7 +747,7 @@ def makemkv(job):
                 raise ValueError(f"No drive found for device {job.devpath}")
     logging.info(f"MakeMKV disc number: {job.drive.mdisc:d}")
     # get filesystem in order
-    rawpath = setup_rawpath(job, os.path.join(str(job.config.RAW_PATH), str(job.title)))
+    rawpath = setup_rawpath(job)
     logging.info(f"Processing files to: {rawpath}")
     # Rip BluRay
     if (job.config.RIPMETHOD in ("backup", "backup_dvd")) and job.disctype == "bluray":
@@ -856,34 +856,28 @@ def process_single_tracks(job, rawpath, mode: str):
         process_index += 1
 
 
-def setup_rawpath(job, raw_path):
+def setup_rawpath(job):
     """
-    Checks if we need to create path and does so if needed\n\n
+    Create the raw folder for this job: RAW_PATH/<title>_<stage>. The stage makes it unique per job, so
+    resume.py can find it again after an interrupted transcode.\n\n
 
     Parameters:
         job: arm.models.job.Job
-        raw_path
     Returns:
-        str: modified path
+        str: the raw folder
     """
-
-    logging.info(f"Destination is {raw_path}")
-    if not os.path.exists(raw_path):
-        try:
-            os.makedirs(raw_path)
-        except OSError:
-            err = f"Couldn't create the base file path: {raw_path}. Probably a permissions error"
-            logging.error(err)
-    else:
-        logging.info(f"{raw_path} exists.  Adding timestamp.")
-        raw_path = os.path.join(str(job.config.RAW_PATH), f"{job.title}_{job.stage}")
-        logging.info(f"raw_path is {raw_path}")
-        try:
-            os.makedirs(raw_path)
-        except OSError:
-            err = f"Couldn't create the base file path: {raw_path}. Probably a permissions error"
-            raise OSError(err) from OSError
+    raw_path = raw_path_for(job)
+    logging.info(f"raw_path is {raw_path}")
+    try:
+        os.makedirs(raw_path, exist_ok=True)
+    except OSError as error:
+        raise OSError(f"Couldn't create the base file path: {raw_path}. Probably a permissions error") from error
     return raw_path
+
+
+def raw_path_for(job):
+    """The raw folder of a job (see setup_rawpath)"""
+    return os.path.join(str(job.config.RAW_PATH), f"{job.title}_{job.stage}")
 
 
 def prep_mkv():

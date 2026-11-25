@@ -26,6 +26,7 @@ if find_spec("arm") is None:
 import arm.config.config as cfg  # noqa E402
 from arm.models.config import Config  # noqa: E402
 from arm.models.job import Job, JobState  # noqa: E402
+from arm.ripper.resume import RESUMABLE  # noqa: E402
 from arm.models.system_drives import SystemDrives  # noqa: E402
 from arm.ripper import (arm_ripper, identify, logger,  # noqa: E402
                         music_brainz, utils)
@@ -251,7 +252,10 @@ if __name__ == "__main__":
         )
         logging.critical(error, exc_info=(error if print_stacktrace else None),)
 
-        if job:
+        if job and str(error) == "Received SIGTERM" and job.status in RESUMABLE:
+            # Stopped while transcoding (ARM or Docker restarted): resume.py finishes it from the raw files
+            logging.info(f"Job left as '{job.status}' to be resumed when ARM starts again")
+        elif job:
             utils.notify(
                 job,
                 constants.NOTIFY_TITLE,
