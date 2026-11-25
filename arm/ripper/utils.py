@@ -355,10 +355,12 @@ def scan_emby():
     if cfg.arm_config["EMBY_REFRESH"]:
         logging.info("Sending Emby library scan request")
         url = f"http://{cfg.arm_config['EMBY_SERVER']}:{cfg.arm_config['EMBY_PORT']}/Library/Refresh"
-        # The key in a header, not the URL, so it stays out of the log. A failed scan request (server down,
-        # wrong key) must not fail a job whose files are already in place
+        # The key in headers, not the URL, so it stays out of the log: X-Emby-Token for Emby, Authorization for
+        # Jellyfin (12.x refuses the other two forms). A failed scan request (server down, wrong key) must not fail
+        # a job whose files are already in place
+        key = str(cfg.arm_config["EMBY_API_KEY"])
         try:
-            requests.post(url, headers={"X-Emby-Token": str(cfg.arm_config["EMBY_API_KEY"])},
+            requests.post(url, headers={"X-Emby-Token": key, "Authorization": f'MediaBrowser Token="{key}"'},
                           timeout=30).raise_for_status()
             logging.info("Emby Library Scan request successful")
         except requests.exceptions.RequestException as error:
