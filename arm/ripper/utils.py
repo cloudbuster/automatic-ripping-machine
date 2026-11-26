@@ -291,6 +291,11 @@ def find_matching_file(expected_file):
 
     if not candidate_files:
         return expected_file
+    if len(candidate_files) == 1:
+        # MakeMKV may name the file other than its info said (title_t00.mkv for C1_t00.mkv after a drive
+        # timeout, 26 Nov): the only file of that type is the one
+        logging.info(f"Using '{candidate_files[0][0]}', the only {expected_ext} file, for '{expected_filename}'")
+        return os.path.join(directory, candidate_files[0][0])
 
     # Find best match
     best_match = None
