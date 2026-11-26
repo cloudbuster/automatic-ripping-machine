@@ -125,8 +125,15 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
     utils.scan_emby()
     # Set permissions if arm.yaml requires it
     utils.set_permissions(final_directory)
-    # If set in the arm.yaml remove the raw files
-    utils.delete_raw_files([transcode_in_path, transcode_out_path, makemkv_out_path])
+    # If set in the arm.yaml remove the raw files, but never with an encoded file not moved (it was lost on 26 Nov)
+    left = [f for f in os.listdir(transcode_out_path) if f.endswith("." + job.config.DEST_EXT)] \
+        if transcode_out_path != transcode_in_path and os.path.isdir(transcode_out_path) else []
+    if left:
+        logging.error(f"Not moved: {left} in {transcode_out_path}. Keeping the raw and transcoded files")
+        utils.notify(job, constants.NOTIFY_TITLE, f"{job.title}: {len(left)} file(s) not moved, kept in "
+                                                  f"{transcode_out_path}")
+    else:
+        utils.delete_raw_files([transcode_in_path, transcode_out_path, makemkv_out_path])
     # report errors if any
     notify_exit(job)
     logging.info("************* ARM processing complete *************")

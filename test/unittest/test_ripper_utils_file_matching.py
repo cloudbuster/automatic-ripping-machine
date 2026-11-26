@@ -91,6 +91,13 @@ class TestFileMatching(unittest.TestCase):
         # Should not match files with different extensions
         self.assertEqual(result, expected_file)
 
+    def test_find_matching_file_only_candidate(self):
+        """MakeMKV wrote title_t00.mkv where its info said C1_t00.mkv (26 Nov): the only .mkv is the one"""
+        actual_file = os.path.join(self.test_dir, "title_t00.mkv")
+        with open(actual_file, 'w') as f:
+            f.write("test")
+        self.assertEqual(find_matching_file(os.path.join(self.test_dir, "C1_t00.mkv")), actual_file)
+
     def test_find_matching_file_nonexistent_directory(self):
         """Test handling of non-existent directory"""
         expected_file = os.path.join(self.test_dir, "nonexistent_dir", "TestMovie.mp4")
