@@ -80,6 +80,10 @@ def rip_visual_media(have_dupes, job, logfile, protection):
 
         if job.config.NOTIFY_RIP:
             utils.notify(job, constants.NOTIFY_TITLE, f"{job.title} rip complete. Starting transcode. ")
+        mismatch = utils.length_mismatch(job)
+        if mismatch:
+            logging.warning(mismatch)
+            utils.notify(job, constants.NOTIFY_TITLE, mismatch)
         logging.info("************* Ripping with MakeMKV completed *************")
         # point HB/FFMPEG to the path MakeMKV ripped to
         transcode_in_path = makemkv_out_path
@@ -130,8 +134,9 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
         if transcode_out_path != transcode_in_path and os.path.isdir(transcode_out_path) else []
     if left:
         logging.error(f"Not moved: {left} in {transcode_out_path}. Keeping the raw and transcoded files")
-        utils.notify(job, constants.NOTIFY_TITLE, f"{job.title}: {len(left)} file(s) not moved, kept in "
-                                                  f"{transcode_out_path}")
+        utils.notify(job, constants.NOTIFY_TITLE, f"{job.title}: {len(left)} file(s) not moved (the library may "
+                                                  f"already have a file of that name: a different film or version?)"
+                                                  f", kept in {transcode_out_path}")
     else:
         utils.delete_raw_files([transcode_in_path, transcode_out_path, makemkv_out_path])
     # report errors if any
