@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, '/opt/arm')
 
-from arm.ripper.utils import film_disc, has_film  # noqa: E402
+from arm.ripper.utils import film_disc, has_film, length_mismatch  # noqa: E402
 from arm.ripper.arm_ripper import move_bonus_disc  # noqa: E402
 
 
@@ -69,3 +69,23 @@ class TestFilmDisc(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestLengthMismatch(unittest.TestCase):
+    def job(self, seconds, label="ARN", video_type="movie"):
+        return SimpleNamespace(tracks=[SimpleNamespace(length=600), SimpleNamespace(length=seconds)],
+                               video_type=video_type, title_manual=None, label=label,
+                               title="Arn - The Knight Templar", year="2007")
+
+    def test_pal_and_cinema_length_pass(self):
+        self.assertIsNone(length_mismatch(self.job(7974), runtime_min=139))  # PAL DVD of the right film
+        self.assertIsNone(length_mismatch(self.job(139 * 60 + 50), runtime_min=139))  # Blu-ray, 24 fps
+
+    def test_another_film_is_flagged(self):
+        message = length_mismatch(self.job(7352), runtime_min=139)  # the sequel, 2 h 03 min
+        self.assertIn("122 min", message)
+        self.assertIn("139 min", message)
+
+    def test_not_checked(self):
+        self.assertIsNone(length_mismatch(self.job(7352, video_type="series"), runtime_min=139))
+        self.assertIsNone(length_mismatch(self.job(7352, label="SPARTACUS_DISC_2"), runtime_min=139))

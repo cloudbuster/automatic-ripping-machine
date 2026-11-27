@@ -964,6 +964,34 @@ def film_disc(label):
     return int(match[1]) if match else 1
 
 
+def length_mismatch(job, runtime_min=None):
+    """
+    The disc's longest title against the film's running time on OMDb: a disc that isn't the film it was looked up
+    as (5 wrong lookups by 27 Nov: Arn's sequel as the first film, Cassandra's Dream as Maleficent 2...).
+    A message if the disc is within 2 % of neither the cinema length nor the PAL DVD one (25/24 fps, 4 % faster),
+    else None. runtime_min: for tests; otherwise fetched by the job's imdb_id.
+    """
+    disc = max((t.length or 0 for t in job.tracks), default=0)
+    if job.video_type != "movie" or job.title_manual or film_disc(job.label) > 1 or not disc:
+        return None
+    if runtime_min is None:
+        try:
+            info = requests.get("https://www.omdbapi.com/", timeout=20, params={
+                "i": job.imdb_id, "apikey": cfg.arm_config["OMDB_API_KEY"]}).json() if job.imdb_id else {}
+        except (requests.exceptions.RequestException, ValueError) as error:
+            logging.info(f"Length check skipped, OMDb: {error}")
+            return None
+        found = re.match(r"(\d+) min", info.get("Runtime", ""))
+        if not found:
+            return None
+        runtime_min = int(found.group(1))
+    film = runtime_min * 60
+    if any(abs(disc - length) <= 0.02 * length for length in (film, film * 24 / 25)):
+        return None
+    return (f"{job.title}: the disc is {disc // 60} min, {job.title} ({job.year}) is {runtime_min} min. "
+            f"A different film or cut? Check the title")
+
+
 def has_film(folder, ext):
     """True if a film's folder holds a video file of its own (not only extras/ or a poster)"""
     return os.path.isdir(folder) and any(f.endswith("." + ext) and os.path.isfile(os.path.join(folder, f))
