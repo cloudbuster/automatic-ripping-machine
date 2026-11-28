@@ -134,9 +134,8 @@ def finish_visual_media(job, logfile, protection, use_make_mkv, transcode_in_pat
         if transcode_out_path != transcode_in_path and os.path.isdir(transcode_out_path) else []
     if left:
         logging.error(f"Not moved: {left} in {transcode_out_path}. Keeping the raw and transcoded files")
-        utils.notify(job, constants.NOTIFY_TITLE, f"{job.title}: {len(left)} file(s) not moved (the library may "
-                                                  f"already have a file of that name: a different film or version?)"
-                                                  f", kept in {transcode_out_path}")
+        utils.notify(job, constants.NOTIFY_TITLE,
+                     f"{job.title}: {len(left)} file(s) not moved (same name already in the library?), kept in {transcode_out_path}")
     else:
         utils.delete_raw_files([transcode_in_path, transcode_out_path, makemkv_out_path])
     # report errors if any
