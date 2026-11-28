@@ -6,11 +6,12 @@ import logging
 import subprocess
 import re
 import shlex
+import time
 import arm.config.config as cfg
 
 from arm.ripper import utils
 from arm.ui import app, db  # noqa E402
-from arm.models.job import JobState
+from arm.models.job import Job, JobState
 
 PROCESS_COMPLETE = "Handbrake processing complete"
 
@@ -92,7 +93,14 @@ def handbrake_sleep_check(job):
     logging.debug("Handbrake starting.")
     utils.database_updater({"status": JobState.TRANSCODE_WAITING.value}, job)
     # TODO: send a notification that jobs are waiting ?
-    utils.sleep_check_process("HandBrakeCLI", int(cfg.arm_config["MAX_CONCURRENT_TRANSCODES"]))
+    while True:
+        utils.sleep_check_process("HandBrakeCLI", int(cfg.arm_config["MAX_CONCURRENT_TRANSCODES"]))
+        waiting = db.session.query(Job.job_id, Job.pid).filter(Job.status == JobState.TRANSCODE_WAITING.value).all()
+        older = utils.older_waiting(job.job_id, waiting)
+        if older is None:
+            break
+        logging.info(f"Job {older} has waited longer: it encodes first")
+        time.sleep(30)
     logging.debug(f"Setting job status to '{JobState.TRANSCODE_ACTIVE.value}'")
     utils.database_updater({"status": JobState.TRANSCODE_ACTIVE.value}, job)
 
@@ -235,7 +243,7 @@ def handbrake_mkv(srcpath, basepath, logfile, job):
     skipped = {t.filename for t in job.tracks if t.status == "skipped"}  # Play All (series.plan)
 
     # This will fail if the directory raw gets deleted
-    for files in os.listdir(srcpath):
+    for files in sorted(os.listdir(srcpath)):  # track order: episode 1 first
         if files in skipped:
             logging.info(f"Skipping {shlex.quote(files)}: a Play All title (the episodes back to back)")
             continue
