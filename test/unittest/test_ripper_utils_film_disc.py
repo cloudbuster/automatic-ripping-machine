@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, '/opt/arm')
 
-from arm.ripper.utils import film_disc, has_film, length_mismatch  # noqa: E402
+from arm.ripper.utils import film_disc, has_film, length_mismatch, older_waiting  # noqa: E402
 from arm.ripper.arm_ripper import move_bonus_disc  # noqa: E402
 
 
@@ -89,3 +89,14 @@ class TestLengthMismatch(unittest.TestCase):
     def test_not_checked(self):
         self.assertIsNone(length_mismatch(self.job(7352, video_type="series"), runtime_min=139))
         self.assertIsNone(length_mismatch(self.job(7352, label="SPARTACUS_DISC_2"), runtime_min=139))
+
+
+class TestOlderWaiting(unittest.TestCase):
+    def test_oldest_running_job_first(self):
+        import subprocess
+        gone = subprocess.Popen(["true"])
+        gone.wait()
+        me = os.getpid()
+        self.assertEqual(older_waiting(59, [(55, me), (58, me), (59, me), (60, me)]), 55)
+        self.assertIsNone(older_waiting(55, [(55, me), (58, me)]))
+        self.assertIsNone(older_waiting(59, [(55, gone.pid), (57, None), (59, me)]))  # crashed jobs don't block

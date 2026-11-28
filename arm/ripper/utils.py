@@ -120,6 +120,19 @@ def notify_entry(job):
         raise RipperException("Could not determine disc type")
 
 
+def older_waiting(job_id, waiting):
+    """
+    The job that waited longer for the encoder, so discs encode in the order they were ripped (each waiting job
+    polls at random times, so the first to wake took the slot, 28 Nov)\n
+    :param int job_id: this job
+    :param waiting: (job_id, pid) of the jobs waiting to transcode
+    :return int: the oldest of them still running, or None
+    """
+    # ponytail: a crashed job's pid reused by another process would hold the line; compare pid_hash if it happens
+    older = [j for j, pid in waiting if j < job_id and pid and psutil.pid_exists(pid)]
+    return min(older, default=None)
+
+
 def sleep_check_process(process_str, max_processes, sleep=(20, 120, 10)):
     """
     New function to check for max_transcode from job.config and force obey limits\n
